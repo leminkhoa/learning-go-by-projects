@@ -110,7 +110,7 @@ To generate Go code from your `.proto` files, follow these steps:
 5. **Generate gRPC Code**
 
    ```bash
-   protoc --go_out=./pb --go-grpc_out=./pb account.proto
+   protoc --go_out=./ --go-grpc_out=./ account.proto
    ```
 
 ---

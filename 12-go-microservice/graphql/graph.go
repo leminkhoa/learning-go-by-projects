@@ -1,13 +1,11 @@
 package main
 
-import (
-	"github.com/99designs/gqlgen/graphql"
-)
+import "github.com/99designs/gqlgen/graphql"
 
 type Server struct {
-	// accountClient *account.Client
-	// catalogClient *catalog.Client
-	// productClient *product.Client
+	accountClient *account.Client
+	catalogClient *catalog.Client
+	productClient *product.Client
 }
 
 func NewGraphQLServer(accountUrl, catalogUrl, productUrl string) (*Server, error) {

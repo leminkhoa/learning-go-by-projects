@@ -16,3 +16,10 @@ func (r *queryResolver) Accounts(
 
 }
 
+func (r *queryResolver) Products(
+	ctx context.Context, 
+	pagination *PaginationInput, 
+	id *string
+) ([]*Product ,error) {
+
+}
