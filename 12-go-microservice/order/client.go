@@ -7,6 +7,7 @@ import (
 
 	"github.com/leminkhoa/go-grpc-graphql-microservice/order/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
@@ -15,7 +16,7 @@ type Client struct {
 }
 
 func NewClient(url string) (*Client, error) {
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +56,24 @@ func (c *Client) PostOrder(
 	newOrderCreatedAt := time.Time{}
 	newOrderCreatedAt.UnmarshalBinary(newOrder.CreatedAt)
 
+	// Convert the enriched products from the response
+	var enrichedProducts []OrderedProduct
+	for _, p := range newOrder.Products {
+		enrichedProducts = append(enrichedProducts, OrderedProduct{
+			ID:          p.Id,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+			Quantity:    p.Quantity,
+		})
+	}
+
 	return &Order{
 		ID:         newOrder.Id,
 		CreatedAt:  newOrderCreatedAt,
 		TotalPrice: newOrder.TotalPrice,
 		AccountID:  newOrder.AccountId,
-		Products:   products,
+		Products:   enrichedProducts,
 	}, nil
 }
 

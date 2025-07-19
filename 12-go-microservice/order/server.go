@@ -52,10 +52,20 @@ func ListenGRPC(s Service, accountURL, catalogURL string, port int) error {
 
 }
 
-func (s *grpcServer) PostOrder(ctx context.Context, r *pb.PostOrderRequest) (*pb.PostOrderResponse, error) {
+func (s *grpcServer) PostOrder(
+	ctx context.Context,
+	r *pb.PostOrderRequest,
+) (*pb.PostOrderResponse, error) {
+	log.Printf("Creating order for account: %s", r.AccountId)
+
+	// Log the requested products
+	for _, p := range r.Products {
+		log.Printf("Requested product ID: '%s', Quantity: %d", p.ProductId, p.Quantity)
+	}
+
 	_, err := s.accountClient.GetAccount(ctx, r.AccountId)
 	if err != nil {
-		log.Println("Error getting account:", err)
+		log.Printf("Error getting account %s: %v", r.AccountId, err)
 		return nil, errors.New("account not found")
 	}
 
@@ -64,16 +74,25 @@ func (s *grpcServer) PostOrder(ctx context.Context, r *pb.PostOrderRequest) (*pb
 		productIDs = append(productIDs, p.ProductId)
 	}
 
+	log.Printf("Fetching products with IDs: %v", productIDs)
+
 	// Retrieve product information from catalog client
 	products, err := s.catalogClient.GetProducts(ctx, 0, 0, productIDs, "")
 	if err != nil {
-		log.Println("Error getting products")
+		log.Printf("Error getting products from catalog: %v", err)
 		return nil, errors.New("products not found")
+	}
+
+	log.Printf("Found %d products from catalog", len(products))
+	for _, p := range products {
+		log.Printf("Catalog product: ID='%s', Name='%s', Price=%f", p.ID, p.Name, p.Price)
 	}
 
 	// Construct ordered products
 	orderedProducts := []OrderedProduct{}
 	for _, p := range products {
+		log.Printf("Processing catalog product: '%s'", p.ID)
+
 		orderedProduct := OrderedProduct{
 			ID:          p.ID,
 			Name:        p.Name,
@@ -85,22 +104,37 @@ func (s *grpcServer) PostOrder(ctx context.Context, r *pb.PostOrderRequest) (*pb
 		for _, rp := range r.Products {
 			if rp.ProductId == p.ID {
 				orderedProduct.Quantity = rp.Quantity
+				log.Printf("Match found! Setting quantity to %d", rp.Quantity)
 				break
+			} else {
+				log.Printf("No match for product ID: '%s'", rp.ProductId)
 			}
 		}
 
 		if orderedProduct.Quantity != 0 {
 			orderedProducts = append(orderedProducts, orderedProduct)
+			log.Printf("Added product '%s' with quantity %d", p.Name, orderedProduct.Quantity)
+		} else {
+			log.Printf("Product '%s' has quantity 0, skipping", p.Name)
 		}
 	}
+
+	log.Printf("Final ordered products count: %d", len(orderedProducts))
 
 	// Call order service implementation
 	order, err := s.service.PostOrder(ctx, r.AccountId, orderedProducts)
 	if err != nil {
-		log.Println("Error posting order:", err)
+		log.Printf("Error posting order: %v", err)
 		return nil, errors.New("could not post order")
 	}
 
+	// Add this logging right before the response construction
+	log.Printf("Order from service - ID: %s, TotalPrice: %f, Products count: %d", order.ID, order.TotalPrice, len(order.Products))
+	for i, p := range order.Products {
+		log.Printf("Order product %d: ID=%s, Name=%s, Quantity=%d", i, p.ID, p.Name, p.Quantity)
+	}
+
+	// Make response order
 	orderProto := &pb.Order{
 		Id:         order.ID,
 		AccountId:  order.AccountID,
@@ -117,6 +151,8 @@ func (s *grpcServer) PostOrder(ctx context.Context, r *pb.PostOrderRequest) (*pb
 			Quantity:    p.Quantity,
 		})
 	}
+
+	log.Printf("Final response has %d products", len(orderProto.Products))
 
 	return &pb.PostOrderResponse{
 		Order: orderProto,

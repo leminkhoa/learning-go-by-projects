@@ -75,10 +75,22 @@ func (r *mutationResolver) CreateOrder(ctx context.Context, in OrderInput) (*Ord
 		return nil, err
 	}
 
+	// Convert the order products to GraphQL format
+	var graphqlProducts []*OrderedProduct
+	for _, p := range o.Products {
+		graphqlProducts = append(graphqlProducts, &OrderedProduct{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+			Quantity:    int(p.Quantity),
+		})
+	}
 	return &Order{
 		ID:         o.ID,
 		CreatedAt:  o.CreatedAt,
 		TotalPrice: o.TotalPrice,
+		Products:   graphqlProducts,
 	}, nil
 
 }

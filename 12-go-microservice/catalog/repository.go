@@ -45,7 +45,8 @@ func (r *elasticRepository) PutProduct(ctx context.Context, p Product) error {
 			Name:        p.Name,
 			Description: p.Description,
 			Price:       p.Price,
-		})
+		}).
+		Do(ctx)
 
 	return nil
 }
@@ -124,12 +125,24 @@ func (r *elasticRepository) ListProductsWithIDs(ctx context.Context, ids []strin
 		Add(items...).
 		Do(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error in MultiGet for IDs %v: %v", ids, err)
 		return nil, err
 	}
 
 	products := []Product{}
 	for _, doc := range res.Docs {
+		// Skip documents that were not found
+		if !doc.Found {
+			log.Printf("Product with ID %s not found", doc.Id)
+			continue
+		}
+
+		// Check if Source is not nil before unmarshaling
+		if doc.Source == nil {
+			log.Printf("Product with ID %s has nil source", doc.Id)
+			continue
+		}
+
 		p := productDocument{}
 		if err = json.Unmarshal(*doc.Source, &p); err == nil {
 			products = append(products, Product{
@@ -138,9 +151,12 @@ func (r *elasticRepository) ListProductsWithIDs(ctx context.Context, ids []strin
 				Description: p.Description,
 				Price:       p.Price,
 			})
+		} else {
+			log.Printf("Error unmarshaling product %s: %v", doc.Id, err)
 		}
 	}
 
+	log.Printf("Found %d products out of %d requested", len(products), len(ids))
 	return products, nil
 }
 
@@ -183,6 +199,25 @@ func NewElasticRepository(url string) (Repository, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	// Create index if it doesn't exist
+	indexName := "catalog"
+	exists, err := client.IndexExists(indexName).Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		// Create index with mapping
+		createIndex, err := client.CreateIndex(indexName).Do(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		if !createIndex.Acknowledged {
+			return nil, errors.New("index creation not acknowledged")
+		}
+		log.Printf("Created index: %s", indexName)
 	}
 
 	return &elasticRepository{client}, nil
