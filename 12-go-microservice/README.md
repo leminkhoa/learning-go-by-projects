@@ -61,19 +61,29 @@ git clone <repository-url>
 cd <project-directory>
 ```
 
-### 2. Start Services with Docker Compose
+### 2. Create Vendor Folder 
+
+```bash
+go mod vendor
+```
+
+This packages all dependencies locally for faster Docker builds.
+
+### 3. Start Services with Docker Compose
 
 ```bash
 docker-compose up -d --build
 ```
 
-### 3. Access the GraphQL Playground
+### 4. Access the GraphQL Playground
 
 Visit: [http://localhost:8000/playground](http://localhost:8000/playground)
 
 ---
 
-## gRPC Protobuf Generation
+## Developement Guide
+
+### gRPC Protobuf Generation
 
 To generate Go code from your `.proto` files, follow these steps:
 
@@ -102,7 +112,7 @@ To generate Go code from your `.proto` files, follow these steps:
 4. **Prepare Your Project**
 
    - Create a `pb` folder in your project root.
-   - In your `account.proto`, add:
+   - In your `<filename>.proto`, add:
      ```
      option go_package = "./pb";
      ```
@@ -120,12 +130,9 @@ To generate Go code from your `.proto` files, follow these steps:
 - **Planning Drawboard:**  
   [Whimsical Board](https://whimsical.com/graphql-grpc-go-microservice-LdA8wTyHe3pUaUnEdH99cj)
 
-- **Reference Code:**  
+- **Original Source Code:**  
   [AkhilSharma90/go-grpc-graphql-microservices](https://github.com/AkhilSharma90/go-grpc-graphql-microservices)
 
 ---
 
-## Contributing
-
-Contributions are welcome! Please open issues or submit pull requests for improvements and bug fixes.
 

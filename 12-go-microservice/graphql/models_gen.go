@@ -2,6 +2,10 @@
 
 package main
 
+import (
+	"time"
+)
+
 type AccountInput struct {
 	Name string `json:"name"`
 }
@@ -11,7 +15,7 @@ type Mutation struct {
 
 type Order struct {
 	ID         string            `json:"id"`
-	CreatedAt  string            `json:"createdAt"`
+	CreatedAt  time.Time         `json:"createdAt"`
 	TotalPrice float64           `json:"totalPrice"`
 	Products   []*OrderedProduct `json:"products"`
 }

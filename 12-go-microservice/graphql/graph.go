@@ -1,14 +1,19 @@
 package main
 
-import "github.com/99designs/gqlgen/graphql"
+import (
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/leminkhoa/go-grpc-graphql-microservice/account"
+	"github.com/leminkhoa/go-grpc-graphql-microservice/catalog"
+	"github.com/leminkhoa/go-grpc-graphql-microservice/order"
+)
 
 type Server struct {
 	accountClient *account.Client
 	catalogClient *catalog.Client
-	productClient *product.Client
+	orderClient   *order.Client
 }
 
-func NewGraphQLServer(accountUrl, catalogUrl, productUrl string) (*Server, error) {
+func NewGraphQLServer(accountUrl, catalogUrl, orderUrl string) (*Server, error) {
 	accountClient, err := account.NewClient(accountUrl)
 	if err != nil {
 		return nil, err
@@ -20,7 +25,7 @@ func NewGraphQLServer(accountUrl, catalogUrl, productUrl string) (*Server, error
 		return nil, err
 	}
 
-	productClient, err := product.NewClient(productUrl)
+	orderClient, err := order.NewClient(orderUrl)
 	if err != nil {
 		accountClient.Close()
 		catalogClient.Close()
@@ -30,7 +35,7 @@ func NewGraphQLServer(accountUrl, catalogUrl, productUrl string) (*Server, error
 	return &Server{
 		accountClient,
 		catalogClient,
-		productClient,
+		orderClient,
 	}, nil
 }
 

@@ -15,7 +15,7 @@ type Product {
 
 type Order {
     id: String!
-    createdAt: String!
+    createdAt: Time!
     totalPrice: Float!
     products: [OrderedProduct!]!
 }
@@ -57,13 +57,13 @@ input OrderInput {
 
 
 type Mutation {
-    createAccount(account: AccountInput): Account
-    createProduct(product: ProductInput): Product
-    createOrder(order: OrderInput): Order
+    createAccount(account: AccountInput!): Account
+    createProduct(product: ProductInput!): Product
+    createOrder(order: OrderInput!): Order
 }
 
 type Query {
     accounts(pagination: PaginationInput, id: String): [Account!]!
-    products(pagination: PaginationInput, id: String): [Product!]!
+    products(pagination: PaginationInput, query: String, id: String): [Product!]!
 }
 

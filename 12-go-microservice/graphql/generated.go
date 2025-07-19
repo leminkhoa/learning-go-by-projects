@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -54,9 +55,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount func(childComplexity int, account *AccountInput) int
-		CreateOrder   func(childComplexity int, order *OrderInput) int
-		CreateProduct func(childComplexity int, product *ProductInput) int
+		CreateAccount func(childComplexity int, account AccountInput) int
+		CreateOrder   func(childComplexity int, order OrderInput) int
+		CreateProduct func(childComplexity int, product ProductInput) int
 	}
 
 	Order struct {
@@ -83,7 +84,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Accounts func(childComplexity int, pagination *PaginationInput, id *string) int
-		Products func(childComplexity int, pagination *PaginationInput, id *string) int
+		Products func(childComplexity int, pagination *PaginationInput, query *string, id *string) int
 	}
 }
 
@@ -91,13 +92,13 @@ type AccountResolver interface {
 	Orders(ctx context.Context, obj *Account) ([]*Order, error)
 }
 type MutationResolver interface {
-	CreateAccount(ctx context.Context, account *AccountInput) (*Account, error)
-	CreateProduct(ctx context.Context, product *ProductInput) (*Product, error)
-	CreateOrder(ctx context.Context, order *OrderInput) (*Order, error)
+	CreateAccount(ctx context.Context, account AccountInput) (*Account, error)
+	CreateProduct(ctx context.Context, product ProductInput) (*Product, error)
+	CreateOrder(ctx context.Context, order OrderInput) (*Order, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context, pagination *PaginationInput, id *string) ([]*Account, error)
-	Products(ctx context.Context, pagination *PaginationInput, id *string) ([]*Product, error)
+	Products(ctx context.Context, pagination *PaginationInput, query *string, id *string) ([]*Product, error)
 }
 
 type executableSchema struct {
@@ -150,7 +151,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAccount(childComplexity, args["account"].(*AccountInput)), true
+		return e.complexity.Mutation.CreateAccount(childComplexity, args["account"].(AccountInput)), true
 
 	case "Mutation.createOrder":
 		if e.complexity.Mutation.CreateOrder == nil {
@@ -162,7 +163,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrder(childComplexity, args["order"].(*OrderInput)), true
+		return e.complexity.Mutation.CreateOrder(childComplexity, args["order"].(OrderInput)), true
 
 	case "Mutation.createProduct":
 		if e.complexity.Mutation.CreateProduct == nil {
@@ -174,7 +175,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProduct(childComplexity, args["product"].(*ProductInput)), true
+		return e.complexity.Mutation.CreateProduct(childComplexity, args["product"].(ProductInput)), true
 
 	case "Order.createdAt":
 		if e.complexity.Order.CreatedAt == nil {
@@ -289,7 +290,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Products(childComplexity, args["pagination"].(*PaginationInput), args["id"].(*string)), true
+		return e.complexity.Query.Products(childComplexity, args["pagination"].(*PaginationInput), args["query"].(*string), args["id"].(*string)), true
 
 	}
 	return 0, false
@@ -433,18 +434,18 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_createAccount_argsAccount(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*AccountInput, error) {
+) (AccountInput, error) {
 	if _, ok := rawArgs["account"]; !ok {
-		var zeroVal *AccountInput
+		var zeroVal AccountInput
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
 	if tmp, ok := rawArgs["account"]; ok {
-		return ec.unmarshalOAccountInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐAccountInput(ctx, tmp)
+		return ec.unmarshalNAccountInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐAccountInput(ctx, tmp)
 	}
 
-	var zeroVal *AccountInput
+	var zeroVal AccountInput
 	return zeroVal, nil
 }
 
@@ -461,18 +462,18 @@ func (ec *executionContext) field_Mutation_createOrder_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_createOrder_argsOrder(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*OrderInput, error) {
+) (OrderInput, error) {
 	if _, ok := rawArgs["order"]; !ok {
-		var zeroVal *OrderInput
+		var zeroVal OrderInput
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 	if tmp, ok := rawArgs["order"]; ok {
-		return ec.unmarshalOOrderInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐOrderInput(ctx, tmp)
+		return ec.unmarshalNOrderInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐOrderInput(ctx, tmp)
 	}
 
-	var zeroVal *OrderInput
+	var zeroVal OrderInput
 	return zeroVal, nil
 }
 
@@ -489,18 +490,18 @@ func (ec *executionContext) field_Mutation_createProduct_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_createProduct_argsProduct(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (*ProductInput, error) {
+) (ProductInput, error) {
 	if _, ok := rawArgs["product"]; !ok {
-		var zeroVal *ProductInput
+		var zeroVal ProductInput
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("product"))
 	if tmp, ok := rawArgs["product"]; ok {
-		return ec.unmarshalOProductInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐProductInput(ctx, tmp)
+		return ec.unmarshalNProductInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐProductInput(ctx, tmp)
 	}
 
-	var zeroVal *ProductInput
+	var zeroVal ProductInput
 	return zeroVal, nil
 }
 
@@ -591,11 +592,16 @@ func (ec *executionContext) field_Query_products_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["pagination"] = arg0
-	arg1, err := ec.field_Query_products_argsID(ctx, rawArgs)
+	arg1, err := ec.field_Query_products_argsQuery(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg1
+	args["query"] = arg1
+	arg2, err := ec.field_Query_products_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Query_products_argsPagination(
@@ -613,6 +619,24 @@ func (ec *executionContext) field_Query_products_argsPagination(
 	}
 
 	var zeroVal *PaginationInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_products_argsQuery(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*string, error) {
+	if _, ok := rawArgs["query"]; !ok {
+		var zeroVal *string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+	if tmp, ok := rawArgs["query"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
 	return zeroVal, nil
 }
 
@@ -910,7 +934,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAccount(rctx, fc.Args["account"].(*AccountInput))
+		return ec.resolvers.Mutation().CreateAccount(rctx, fc.Args["account"].(AccountInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -970,7 +994,7 @@ func (ec *executionContext) _Mutation_createProduct(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateProduct(rctx, fc.Args["product"].(*ProductInput))
+		return ec.resolvers.Mutation().CreateProduct(rctx, fc.Args["product"].(ProductInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1032,7 +1056,7 @@ func (ec *executionContext) _Mutation_createOrder(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrder(rctx, fc.Args["order"].(*OrderInput))
+		return ec.resolvers.Mutation().CreateOrder(rctx, fc.Args["order"].(OrderInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1150,9 +1174,9 @@ func (ec *executionContext) _Order_createdAt(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Order_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1162,7 +1186,7 @@ func (ec *executionContext) fieldContext_Order_createdAt(_ context.Context, fiel
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1741,7 +1765,7 @@ func (ec *executionContext) _Query_products(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Products(rctx, fc.Args["pagination"].(*PaginationInput), fc.Args["id"].(*string))
+		return ec.resolvers.Query().Products(rctx, fc.Args["pagination"].(*PaginationInput), fc.Args["query"].(*string), fc.Args["id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4836,6 +4860,11 @@ func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑg
 	return ec._Account(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNAccountInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐAccountInput(ctx context.Context, v any) (AccountInput, error) {
+	res, err := ec.unmarshalInputAccountInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4936,6 +4965,11 @@ func (ec *executionContext) marshalNOrder2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrp
 		return graphql.Null
 	}
 	return ec._Order(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOrderInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐOrderInput(ctx context.Context, v any) (OrderInput, error) {
+	res, err := ec.unmarshalInputOrderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNOrderProductInput2ᚕᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐOrderProductInputᚄ(ctx context.Context, v any) ([]*OrderProductInput, error) {
@@ -5066,6 +5100,11 @@ func (ec *executionContext) marshalNProduct2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑg
 	return ec._Product(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNProductInput2githubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐProductInput(ctx context.Context, v any) (ProductInput, error) {
+	res, err := ec.unmarshalInputProductInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5074,6 +5113,22 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -5342,14 +5397,6 @@ func (ec *executionContext) marshalOAccount2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑg
 	return ec._Account(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOAccountInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐAccountInput(ctx context.Context, v any) (*AccountInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputAccountInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5405,14 +5452,6 @@ func (ec *executionContext) marshalOOrder2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrp
 	return ec._Order(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOOrderInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐOrderInput(ctx context.Context, v any) (*OrderInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputOrderInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐPaginationInput(ctx context.Context, v any) (*PaginationInput, error) {
 	if v == nil {
 		return nil, nil
@@ -5426,14 +5465,6 @@ func (ec *executionContext) marshalOProduct2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑg
 		return graphql.Null
 	}
 	return ec._Product(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOProductInput2ᚖgithubᚗcomᚋleminkhoaᚋgoᚑgrpcᚑgraphqlᚑmicroserviceᚋgraphqlᚐProductInput(ctx context.Context, v any) (*ProductInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputProductInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/leminkhoa/go-grpc-graphql-microservice/catalog/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
@@ -14,7 +13,7 @@ type Client struct {
 }
 
 func NewClient(url string) (*Client, error) {
-	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +24,10 @@ func NewClient(url string) (*Client, error) {
 		conn:    conn,
 		service: c,
 	}, nil
+}
+
+func (c *Client) Close() {
+	c.conn.Close()
 }
 
 func (c *Client) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {

@@ -13,7 +13,9 @@ COPY go.mod go.sum ./
 # Copy project source files
 COPY vendor vendor
 COPY account account
-RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/account
+COPY catalog catalog
+COPY order order
+RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./order/cmd/order
 
 
 # Final stage: lightweight image for running the app
